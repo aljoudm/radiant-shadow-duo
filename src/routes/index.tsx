@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import sceneBoth from "@/assets/scene-both.jpg";
 import sceneLeft from "@/assets/scene-left.jpg";
 import sceneRight from "@/assets/scene-right.jpg";
@@ -9,16 +9,20 @@ import { generateDialogue, type Dialogue } from "@/lib/dialogue.functions";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "نقاش الرجّالين — حوار بالذكاء الاصطناعي" },
+      { title: "AI Debate — نقاش بالذكاء الاصطناعي" },
       {
         name: "description",
-        content: "اكتب موضوع، وشاهد رجّالين بالثوب والشماغ يتناقشون فيه بثلاث مشاهد متتابعة.",
+        content:
+          "اكتب موضوعاً وشاهد متحدثين يتناقشان فيه بحجّة ورد على مسرح واحد، بصياغة من الذكاء الاصطناعي.",
       },
-      { property: "og:title", content: "نقاش الرجّالين — حوار بالذكاء الاصطناعي" },
+      { property: "og:title", content: "AI Debate — نقاش بالذكاء الاصطناعي" },
       {
         property: "og:description",
-        content: "اكتب موضوع، وشاهد رجّالين بالثوب والشماغ يتناقشون فيه بثلاث مشاهد متتابعة.",
+        content:
+          "اكتب موضوعاً وشاهد متحدثين يتناقشان فيه بحجّة ورد على مسرح واحد، بصياغة من الذكاء الاصطناعي.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -26,15 +30,20 @@ export const Route = createFileRoute("/")({
 
 type Stage = 0 | 1 | 2;
 
+const readingTime = (text: string) =>
+  Math.min(14000, Math.max(4500, text.trim().split(/\s+/).length * 520));
+
 function Bubble({ text, side }: { text: string; side: "left" | "right" }) {
   return (
     <div
-      className={`absolute top-[6%] w-[46%] max-w-sm ${side === "left" ? "right-[6%]" : "left-[6%]"}`}
+      className={`absolute top-[10%] w-[42%] max-w-md ${
+        side === "left" ? "left-[30%]" : "right-[30%]"
+      }`}
     >
-      <div className="relative rounded-3xl border-2 border-foreground/15 bg-card px-5 py-4 text-center text-sm font-medium leading-relaxed text-card-foreground shadow-xl md:text-base">
+      <div className="relative rounded-2xl border border-border/60 bg-card/95 px-6 py-5 text-center text-sm leading-loose tracking-wide text-card-foreground shadow-2xl backdrop-blur-sm md:text-base">
         {text}
         <span
-          className={`absolute -bottom-3 h-6 w-6 rotate-45 border-b-2 border-l-2 border-foreground/15 bg-card ${
+          className={`absolute -bottom-2 h-4 w-4 rotate-45 border-b border-l border-border/60 bg-card/95 ${
             side === "left" ? "left-8" : "right-8"
           }`}
         />
@@ -50,6 +59,13 @@ function Index() {
   const [stage, setStage] = useState<Stage>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // الرد الثاني يجي تلقائي بعد وقت كافي لقراءة كلام الأول
+  useEffect(() => {
+    if (stage !== 1 || !dialogue) return;
+    const timer = setTimeout(() => setStage(2), readingTime(dialogue.first));
+    return () => clearTimeout(timer);
+  }, [stage, dialogue]);
 
   const start = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,65 +92,79 @@ function Index() {
   const image = stage === 0 ? sceneBoth : stage === 1 ? sceneLeft : sceneRight;
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background px-4 py-8 md:py-12">
-      <div className="mx-auto max-w-3xl">
+    <main dir="rtl" className="min-h-screen bg-background px-5 py-12 md:py-16">
+      <div className="mx-auto max-w-4xl">
         <header className="text-center">
-          <h1 className="text-3xl font-bold text-foreground md:text-4xl">نقاش الرجّالين</h1>
-          <p className="mt-2 text-sm text-muted-foreground md:text-base">
-            اكتب الموضوع، وخلّهم يتناقشون فيه مشهد ورا مشهد.
+          <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
+            Powered by AI
+          </p>
+          <h1
+            dir="ltr"
+            className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl"
+          >
+            AI Debate
+          </h1>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
+            اطرح الموضوع، وسيتناقش المتحدثان فيه: حجّة ثم رد، بالتسلسل.
           </p>
         </header>
 
-        <div className="relative mt-8 overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+        <div className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl ring-1 ring-border/40">
           <img
             src={image}
-            alt="رجلان بالثوب الأبيض والشماغ الأحمر يتناقشان"
+            alt="متحدثان يتناقشان على المسرح"
             width={1280}
-            height={832}
+            height={800}
             className="block w-full"
           />
           {stage === 1 && dialogue && <Bubble text={dialogue.first} side="left" />}
           {stage === 2 && dialogue && <Bubble text={dialogue.second} side="right" />}
+
+          {stage !== 0 && (
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2">
+              {[1, 2].map((n) => (
+                <span
+                  key={n}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    stage === n ? "w-8 bg-primary" : "w-3 bg-border"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {stage === 0 ? (
-          <form onSubmit={start} className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <form onSubmit={start} className="mt-8 flex flex-col gap-3 sm:flex-row">
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="مثال: الدوام عن بعد أفضل من الحضور؟"
-              className="flex-1 rounded-2xl border border-input bg-card px-4 py-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
+              placeholder="مثال: العمل عن بُعد أفضل من الحضور المكتبي"
+              className="flex-1 rounded-xl border border-input bg-card px-5 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
             />
             <button
               type="submit"
               disabled={loading || !topic.trim()}
-              className="rounded-2xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground transition-opacity disabled:opacity-50"
+              className="rounded-xl bg-primary px-8 py-3.5 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {loading ? "جاري التوليد..." : "ابدأ النقاش"}
+              {loading ? "جاري التحضير…" : "ابدأ النقاش"}
             </button>
           </form>
         ) : (
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {stage === 1 && (
-              <button
-                onClick={() => setStage(2)}
-                className="rounded-2xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground"
-              >
-                رد الثاني
-              </button>
-            )}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              {stage === 1 ? "المتحدث الأول يتكلّم… الرد بعد قليل" : "انتهى النقاش"}
+            </p>
             <button
               onClick={reset}
-              className="rounded-2xl border border-border bg-card px-6 py-3 text-base font-semibold text-card-foreground"
+              className="rounded-xl border border-border bg-card px-8 py-3 text-base font-medium text-card-foreground transition-colors hover:bg-secondary"
             >
               موضوع جديد
             </button>
           </div>
         )}
 
-        {error && (
-          <p className="mt-4 text-center text-sm text-destructive">{error}</p>
-        )}
+        {error && <p className="mt-5 text-center text-sm text-destructive">{error}</p>}
       </div>
     </main>
   );
