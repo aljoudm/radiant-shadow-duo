@@ -28,7 +28,7 @@ export function SceneLayout({
         width={1280}
         height={832}
         {...(eager ? {} : { loading: "lazy" as const })}
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-contain md:object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/10" />
 
