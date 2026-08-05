@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import sceneBoth from "@/assets/scene-both.jpg";
 import sceneLeft from "@/assets/scene-left.jpg";
 import sceneRight from "@/assets/scene-right.jpg";
@@ -9,17 +9,17 @@ import { generateDialogue, type Dialogue } from "@/lib/dialogue.functions";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AI Debate — نقاش بالذكاء الاصطناعي" },
+      { title: "AI Debate — Two Speakers, One Topic" },
       {
         name: "description",
         content:
-          "اكتب موضوعاً وشاهد متحدثين يتناقشان فيه بحجّة ورد على مسرح واحد، بصياغة من الذكاء الاصطناعي.",
+          "Enter any topic and watch two speakers deliver a formal argument and rebuttal, written and voiced by AI.",
       },
-      { property: "og:title", content: "AI Debate — نقاش بالذكاء الاصطناعي" },
+      { property: "og:title", content: "AI Debate — Two Speakers, One Topic" },
       {
         property: "og:description",
         content:
-          "اكتب موضوعاً وشاهد متحدثين يتناقشان فيه بحجّة ورد على مسرح واحد، بصياغة من الذكاء الاصطناعي.",
+          "Enter any topic and watch two speakers deliver a formal argument and rebuttal, written and voiced by AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/")({
 type Stage = 0 | 1 | 2;
 
 const readingTime = (text: string) =>
-  Math.min(14000, Math.max(4500, text.trim().split(/\s+/).length * 520));
+  Math.min(16000, Math.max(5000, text.trim().split(/\s+/).length * 520));
 
 function Bubble({ text, side }: { text: string; side: "left" | "right" }) {
   return (
@@ -40,8 +40,7 @@ function Bubble({ text, side }: { text: string; side: "left" | "right" }) {
         side === "left" ? "left-1/2 -translate-x-1/4" : "right-1/2 translate-x-1/4"
       }`}
     >
-
-      <div className="relative rounded-2xl border border-border/60 bg-card/95 px-6 py-5 text-center text-sm leading-loose tracking-wide text-card-foreground shadow-2xl backdrop-blur-sm md:text-base">
+      <div className="relative rounded-2xl border border-border/60 bg-card/95 px-6 py-5 text-center text-sm leading-relaxed tracking-wide text-card-foreground shadow-2xl backdrop-blur-sm md:text-base">
         {text}
         <span
           className={`absolute -bottom-2 h-4 w-4 rotate-45 border-b border-l border-border/60 bg-card/95 ${
@@ -59,14 +58,66 @@ function Index() {
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
   const [stage, setStage] = useState<Stage>(0);
   const [loading, setLoading] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // الرد الثاني يجي تلقائي بعد وقت كافي لقراءة كلام الأول
+  const stopAudio = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      if (audio.src.startsWith("blob:")) URL.revokeObjectURL(audio.src);
+      audioRef.current = null;
+    }
+    setSpeaking(false);
+  }, []);
+
+  // Voice the current line, then advance to the rebuttal automatically.
   useEffect(() => {
-    if (stage !== 1 || !dialogue) return;
-    const timer = setTimeout(() => setStage(2), readingTime(dialogue.first));
-    return () => clearTimeout(timer);
-  }, [stage, dialogue]);
+    if (stage === 0 || !dialogue) return;
+    const text = stage === 1 ? dialogue.first : dialogue.second;
+    let cancelled = false;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
+
+    const advance = () => {
+      if (!cancelled && stage === 1) setStage(2);
+    };
+
+    const speak = async () => {
+      try {
+        const res = await fetch("/api/speech", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, voice: stage === 1 ? "onyx" : "echo" }),
+        });
+        if (!res.ok || cancelled) throw new Error("speech unavailable");
+        const url = URL.createObjectURL(await res.blob());
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        audio.onended = () => {
+          setSpeaking(false);
+          fallback = setTimeout(advance, 1200);
+        };
+        setSpeaking(true);
+        await audio.play();
+      } catch {
+        setSpeaking(false);
+        fallback = setTimeout(advance, readingTime(text));
+      }
+    };
+
+    void speak();
+
+    return () => {
+      cancelled = true;
+      if (fallback) clearTimeout(fallback);
+      stopAudio();
+    };
+  }, [stage, dialogue, stopAudio]);
 
   const start = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,13 +129,14 @@ function Index() {
       setDialogue(result);
       setStage(1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "صار خطأ، جرّب مرة ثانية.");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const reset = () => {
+    stopAudio();
     setStage(0);
     setDialogue(null);
     setError(null);
@@ -93,27 +145,24 @@ function Index() {
   const image = stage === 0 ? sceneBoth : stage === 1 ? sceneLeft : sceneRight;
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background px-5 py-12 md:py-16">
+    <main className="min-h-screen bg-background px-5 py-12 md:py-16">
       <div className="mx-auto max-w-4xl">
         <header className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <h1
-            dir="ltr"
-            className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl"
-          >
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
             AI Debate
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
-            اطرح الموضوع، وسيتناقش المتحدثان فيه: حجّة ثم رد، بالتسلسل.
+            Submit a topic. Two speakers will present a formal argument and rebuttal, spoken aloud.
           </p>
         </header>
 
         <div className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl ring-1 ring-border/40">
           <img
             src={image}
-            alt="متحدثان يتناقشان على المسرح"
+            alt="Two speakers facing each other on a debate stage"
             width={1280}
             height={800}
             className="block w-full"
@@ -140,7 +189,7 @@ function Index() {
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="مثال: العمل عن بُعد أفضل من الحضور المكتبي"
+              placeholder="e.g. Remote work is more productive than office work"
               className="flex-1 rounded-xl border border-input bg-card px-5 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
             />
             <button
@@ -148,19 +197,25 @@ function Index() {
               disabled={loading || !topic.trim()}
               className="rounded-xl bg-primary px-8 py-3.5 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {loading ? "جاري التحضير…" : "ابدأ النقاش"}
+              {loading ? "Preparing…" : "Start debate"}
             </button>
           </form>
         ) : (
           <div className="mt-8 flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              {stage === 1 ? "المتحدث الأول يتكلّم… الرد بعد قليل" : "انتهى النقاش"}
+              {stage === 1
+                ? speaking
+                  ? "First speaker is presenting the argument…"
+                  : "Rebuttal coming up…"
+                : speaking
+                  ? "Second speaker is delivering the rebuttal…"
+                  : "Debate concluded."}
             </p>
             <button
               onClick={reset}
               className="rounded-xl border border-border bg-card px-8 py-3 text-base font-medium text-card-foreground transition-colors hover:bg-secondary"
             >
-              موضوع جديد
+              New topic
             </button>
           </div>
         )}

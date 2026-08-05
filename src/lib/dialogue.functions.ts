@@ -24,9 +24,9 @@ export const generateDialogue = createServerFn({ method: "POST" })
           {
             role: "system",
             content:
-              "أنت كاتب حوار سعودي قصير. رجلان يتناقشان في موضوع. اكتب جملة واحدة لكل واحد باللهجة السعودية العامية، قصيرة (أقصى 18 كلمة)، الأول يطرح رأيه والثاني يرد عليه برأي مختلف. أعد JSON فقط بالشكل {\"first\":\"...\",\"second\":\"...\"} بدون أي نص إضافي.",
+              'You write formal debate exchanges in English. Two speakers debate a topic: the first states a formal argument, the second delivers a formal rebuttal with a different position. Each statement must be one or two polished sentences (max 35 words), formal register, no slang, no names, no stage directions. Return JSON only in the form {"first":"...","second":"..."}.',
           },
-          { role: "user", content: `الموضوع: ${data.topic}` },
+          { role: "user", content: `Debate topic: ${data.topic}` },
         ],
         response_format: { type: "json_object" },
       }),
@@ -34,10 +34,11 @@ export const generateDialogue = createServerFn({ method: "POST" })
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      if (res.status === 429) throw new Error("الطلبات كثيرة، جرّب بعد شوي.");
-      if (res.status === 402) throw new Error("انتهى رصيد الذكاء الاصطناعي.");
-      throw new Error(`فشل توليد الحوار: ${res.status} ${text}`);
+      if (res.status === 429) throw new Error("Too many requests. Please try again shortly.");
+      if (res.status === 402) throw new Error("AI credits have been exhausted.");
+      throw new Error(`Failed to generate the debate: ${res.status} ${text}`);
     }
+
 
     const json = (await res.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
@@ -52,7 +53,7 @@ export const generateDialogue = createServerFn({ method: "POST" })
 
     const first = typeof parsed.first === "string" ? parsed.first.trim() : "";
     const second = typeof parsed.second === "string" ? parsed.second.trim() : "";
-    if (!first || !second) throw new Error("ما قدرنا نطلع حوار، جرّب موضوع ثاني.");
+    if (!first || !second) throw new Error("Could not compose the debate. Try another topic.");
 
     return { first, second };
   });
