@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as Scene2RouteImport } from './routes/scene-2'
+import { Route as Scene3RouteImport } from './routes/scene-3'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Scene2Route = Scene2RouteImport.update({
+  id: '/scene-2',
+  path: '/scene-2',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Scene3Route = Scene3RouteImport.update({
+  id: '/scene-3',
+  path: '/scene-3',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/scene-2': typeof Scene2Route
+  '/scene-3': typeof Scene3Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/scene-2': typeof Scene2Route
+  '/scene-3': typeof Scene3Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/scene-2': typeof Scene2Route
+  '/scene-3': typeof Scene3Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/scene-2' | '/scene-3'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/scene-2' | '/scene-3'
+  id: '__root__' | '/' | '/scene-2' | '/scene-3'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  Scene2Route: typeof Scene2Route
+  Scene3Route: typeof Scene3Route
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +68,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scene-2': {
+      id: '/scene-2'
+      path: '/scene-2'
+      fullPath: '/scene-2'
+      preLoaderRoute: typeof Scene2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scene-3': {
+      id: '/scene-3'
+      path: '/scene-3'
+      fullPath: '/scene-3'
+      preLoaderRoute: typeof Scene3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Scene2Route: Scene2Route,
+  Scene3Route: Scene3Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
