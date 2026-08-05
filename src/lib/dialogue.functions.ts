@@ -53,7 +53,7 @@ export const generateDialogue = createServerFn({ method: "POST" })
 
     const first = typeof parsed.first === "string" ? parsed.first.trim() : "";
     const second = typeof parsed.second === "string" ? parsed.second.trim() : "";
-    if (!first || !second) throw new Error("ما قدرنا نطلع حوار، جرّب موضوع ثاني.");
+    if (!first || !second) throw new Error("Could not compose the debate. Try another topic.");
 
     return { first, second };
   });
