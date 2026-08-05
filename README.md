@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Shadow & Light Duo
+
+اسمع ابي ثلاث واجهات الاولى اثنين واقفين قدام بعض لابسين ثوب ابيض وشماغ احمر وعقال والثانيه واحد يصير منور والخلفيه والرجال الضاني عليهم ظل والثالثه الرجال الثاني منور والاول والخلفيه عليهم ظل
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://radiant-shadow-duo.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/bb5a0a23-c117-468b-9a49-f0b53e8da72f).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
