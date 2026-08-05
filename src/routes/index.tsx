@@ -36,10 +36,11 @@ const readingTime = (text: string) =>
 function Bubble({ text, side }: { text: string; side: "left" | "right" }) {
   return (
     <div
-      className={`absolute top-[10%] w-[42%] max-w-md ${
-        side === "left" ? "left-[30%]" : "right-[30%]"
+      className={`absolute top-[8%] w-[34%] max-w-xs ${
+        side === "left" ? "left-1/2 -translate-x-1/4" : "right-1/2 translate-x-1/4"
       }`}
     >
+
       <div className="relative rounded-2xl border border-border/60 bg-card/95 px-6 py-5 text-center text-sm leading-loose tracking-wide text-card-foreground shadow-2xl backdrop-blur-sm md:text-base">
         {text}
         <span
