@@ -197,7 +197,7 @@ function Index() {
         </div>
 
         {stage === 0 ? (
-          <form onSubmit={start} className="mt-14 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <form onSubmit={start} className="mt-24 flex flex-col gap-3 sm:flex-row sm:items-end">
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
