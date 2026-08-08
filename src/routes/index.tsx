@@ -148,7 +148,16 @@ function Index() {
   return (
     <main className="min-h-screen bg-background px-5 py-12 md:py-16">
       <div className="mx-auto max-w-4xl">
-        <header className="text-center">
+        <header className="relative text-center">
+          <img
+            src={bishtAsset.url}
+            alt="Traditional bisht cloak"
+            className={`pointer-events-none absolute top-1 right-2 w-16 drop-shadow-xl transition-all duration-700 ease-out md:right-8 md:w-20 ${
+              stage === 0
+                ? "translate-y-6 scale-90 opacity-0"
+                : "translate-y-0 scale-100 -rotate-6 opacity-100"
+            }`}
+          />
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
