@@ -195,20 +195,29 @@ function Index() {
         </div>
 
         {stage === 0 ? (
-          <form onSubmit={start} className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <form onSubmit={start} className="mt-14 flex flex-col gap-3 sm:flex-row sm:items-end">
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g. Remote work is more productive than office work"
               className="flex-1 rounded-xl border border-input bg-card px-5 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
             />
-            <button
-              type="submit"
-              disabled={loading || !topic.trim()}
-              className="rounded-xl bg-primary px-8 py-3.5 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {loading ? "Preparing…" : "Start debate"}
-            </button>
+            <div className="relative">
+              <img
+                src={bishtAsset.url}
+                alt="Traditional bisht cloak resting on the start button"
+                className={`pointer-events-none absolute -top-11 left-1/2 w-16 -translate-x-1/2 drop-shadow-xl transition-all duration-500 ease-out md:w-20 ${
+                  loading ? "-translate-y-10 scale-90 opacity-0" : "opacity-100"
+                }`}
+              />
+              <button
+                type="submit"
+                disabled={loading || !topic.trim()}
+                className="w-full rounded-xl bg-primary px-8 py-3.5 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? "Preparing…" : "Start debate"}
+              </button>
+            </div>
           </form>
         ) : (
           <div className="mt-8 flex flex-col items-center gap-4">
