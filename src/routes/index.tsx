@@ -68,18 +68,18 @@ function Index() {
   const headerSlotRef = useRef<HTMLSpanElement | null>(null);
   const [flight, setFlight] = useState<{
     phase: "rest" | "fly" | "landed";
-    box: { top: number; left: number; height: number } | null;
+    box: { top: number; left: number; h: number } | null;
   }>({ phase: "rest", box: null });
 
-  const boxOf = (el: HTMLElement | null) => {
+  const anchorOf = (el: HTMLElement | null, h: number) => {
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    return { top: r.top + window.scrollY, left: r.left + r.width / 2, height: r.height };
+    return { top: r.bottom + window.scrollY, left: r.left + r.width / 2, h };
   };
 
   const launchBisht = () => {
-    const from = boxOf(restSlotRef.current);
-    const to = boxOf(headerSlotRef.current);
+    const from = anchorOf(restSlotRef.current, 96);
+    const to = anchorOf(headerSlotRef.current, 52);
     if (!from || !to) {
       setFlight({ phase: "landed", box: null });
       return;
@@ -88,8 +88,9 @@ function Index() {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setFlight({ phase: "fly", box: to }));
     });
-    setTimeout(() => setFlight({ phase: "landed", box: null }), 1400);
+    setTimeout(() => setFlight({ phase: "landed", box: null }), 1500);
   };
+
 
 
   const stopAudio = useCallback(() => {
