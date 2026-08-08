@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
+import bishtAsset from "@/assets/bisht.png.asset.json";
 import sceneBoth from "@/assets/scene-both.jpg";
 import sceneLeft from "@/assets/scene-left.jpg";
 import sceneRight from "@/assets/scene-right.jpg";
