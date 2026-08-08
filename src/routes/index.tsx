@@ -180,6 +180,21 @@ function Index() {
 
   return (
     <main className="min-h-screen bg-background px-5 py-12 md:py-16">
+      {flight.phase === "fly" && flight.box && (
+        <img
+          src={bishtImg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute z-50 w-auto -translate-x-1/2 -translate-y-full [filter:drop-shadow(0_10px_16px_rgb(0_0_0/0.5))] transition-all duration-[1300ms] ease-[cubic-bezier(0.55,-0.2,0.25,1)]"
+          style={{
+            top: flight.box.top,
+            left: flight.box.left,
+            height: flight.box.h,
+            rotate: flight.box.h > 60 ? "0deg" : "-3deg",
+          }}
+        />
+      )}
+
       <div className="mx-auto max-w-4xl">
         <header className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
