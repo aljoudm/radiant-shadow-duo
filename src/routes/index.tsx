@@ -244,17 +244,23 @@ function Index() {
             <div className="relative">
               <span
                 aria-hidden
-                className={`pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 h-20 w-20 -translate-x-1/2 rounded-full bg-primary/15 blur-xl transition-opacity duration-500 ${
-                  loading ? "opacity-0" : "opacity-100"
+                className={`pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 h-20 w-24 -translate-x-1/2 rounded-full bg-primary/15 blur-xl transition-opacity duration-500 ${
+                  flight.phase === "rest" ? "opacity-100" : "opacity-0"
                 }`}
               />
-              <img
-                src={bishtAsset.url}
-                alt="Traditional bisht cloak resting on the start button"
-                className={`pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 h-20 w-auto origin-bottom -translate-x-1/2 [filter:drop-shadow(0_8px_12px_rgb(0_0_0/0.5))] transition-all duration-500 ease-out md:h-24 ${
-                  loading ? "-translate-y-10 rotate-3 scale-90 opacity-0" : "opacity-100"
-                }`}
+              <span
+                ref={restSlotRef}
+                aria-hidden
+                className="pointer-events-none absolute bottom-[calc(100%-6px)] left-0 block h-0 w-full"
               />
+              {flight.phase === "rest" && (
+                <img
+                  src={bishtImg}
+                  alt="Traditional bisht cloak resting on the start button"
+                  className="pointer-events-none absolute bottom-[calc(100%-6px)] left-1/2 h-24 w-auto -translate-x-1/2 [filter:drop-shadow(0_10px_14px_rgb(0_0_0/0.55))]"
+                />
+              )}
+
               <button
                 type="submit"
                 disabled={loading || !topic.trim()}
