@@ -182,20 +182,27 @@ function Index() {
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <div className="mt-3 flex items-center justify-center">
-            <img
-              src={bishtAsset.url}
-              alt="Traditional bisht cloak"
-              className={`pointer-events-none h-12 origin-bottom transition-all duration-700 ease-out md:h-14 ${
-                stage === 0
-                  ? "w-0 translate-y-4 scale-75 opacity-0"
-                  : "mr-3 w-auto -rotate-3 opacity-100"
+          <div className="mt-3 flex items-end justify-center gap-3">
+            <span
+              ref={headerSlotRef}
+              className={`relative block transition-all duration-500 ${
+                stage === 0 && flight.phase !== "landed" ? "w-0 opacity-0" : "w-9 md:w-11"
               }`}
-            />
+              style={{ height: 52 }}
+            >
+              {flight.phase === "landed" && (
+                <img
+                  src={bishtImg}
+                  alt="Traditional bisht cloak"
+                  className="pointer-events-none absolute bottom-0 left-1/2 h-[52px] w-auto -translate-x-1/2 -rotate-3 animate-fade-in [filter:drop-shadow(0_0_10px_color-mix(in_oklab,var(--color-primary)_70%,transparent))_drop-shadow(0_0_22px_color-mix(in_oklab,var(--color-primary)_35%,transparent))]"
+                />
+              )}
+            </span>
             <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
               AI Debate
             </h1>
           </div>
+
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
             Submit a topic. Two speakers will present a formal argument and rebuttal, spoken aloud.
           </p>
