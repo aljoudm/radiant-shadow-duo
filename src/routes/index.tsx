@@ -148,22 +148,24 @@ function Index() {
   return (
     <main className="min-h-screen bg-background px-5 py-12 md:py-16">
       <div className="mx-auto max-w-4xl">
-        <header className="relative text-center">
-          <img
-            src={bishtAsset.url}
-            alt="Traditional bisht cloak"
-            className={`pointer-events-none absolute top-1 right-2 w-16 drop-shadow-xl transition-all duration-700 ease-out md:right-8 md:w-20 ${
-              stage === 0
-                ? "translate-y-6 scale-90 opacity-0"
-                : "translate-y-0 scale-100 -rotate-6 opacity-100"
-            }`}
-          />
+        <header className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-            AI Debate
-          </h1>
+          <div className="mt-3 flex items-center justify-center gap-3">
+            <img
+              src={bishtAsset.url}
+              alt="Traditional bisht cloak"
+              className={`pointer-events-none h-11 w-auto origin-bottom transition-all duration-700 ease-out md:h-14 ${
+                stage === 0
+                  ? "w-0 translate-y-4 scale-75 opacity-0"
+                  : "translate-y-0 -rotate-3 scale-100 opacity-100"
+              }`}
+            />
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+              AI Debate
+            </h1>
+          </div>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
             Submit a topic. Two speakers will present a formal argument and rebuttal, spoken aloud.
           </p>
