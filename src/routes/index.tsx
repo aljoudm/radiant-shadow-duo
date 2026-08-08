@@ -155,6 +155,7 @@ function Index() {
     if (!topic.trim() || loading) return;
     setLoading(true);
     setError(null);
+    launchBisht();
     try {
       const result = await run({ data: { topic: topic.trim() } });
       setDialogue(result);
@@ -171,7 +172,9 @@ function Index() {
     setStage(0);
     setDialogue(null);
     setError(null);
+    setFlight({ phase: "rest", box: null });
   };
+
 
   const image = stage === 0 ? sceneBoth : stage === 1 ? sceneLeft : sceneRight;
 
