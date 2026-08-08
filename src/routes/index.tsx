@@ -208,8 +208,8 @@ function Index() {
               <img
                 src={bishtAsset.url}
                 alt="Traditional bisht cloak resting on the start button"
-                className={`pointer-events-none absolute -top-11 left-1/2 w-16 -translate-x-1/2 drop-shadow-xl transition-all duration-500 ease-out md:w-20 ${
-                  loading ? "-translate-y-10 scale-90 opacity-0" : "opacity-100"
+                className={`pointer-events-none absolute bottom-[calc(100%-6px)] left-1/2 h-14 w-auto origin-bottom -translate-x-1/2 [filter:drop-shadow(0_6px_10px_color-mix(in_oklab,var(--foreground)_25%,transparent))] transition-all duration-500 ease-out md:h-16 ${
+                  loading ? "-translate-y-8 rotate-3 scale-90 opacity-0" : "opacity-100"
                 }`}
               />
               <button
