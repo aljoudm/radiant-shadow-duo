@@ -63,6 +63,35 @@ function Index() {
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Bisht flight: rests on the start button, then flies up to the title.
+  const restSlotRef = useRef<HTMLSpanElement | null>(null);
+  const headerSlotRef = useRef<HTMLSpanElement | null>(null);
+  const [flight, setFlight] = useState<{
+    phase: "rest" | "fly" | "landed";
+    box: { top: number; left: number; height: number } | null;
+  }>({ phase: "rest", box: null });
+
+  const boxOf = (el: HTMLElement | null) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { top: r.top + window.scrollY, left: r.left + r.width / 2, height: r.height };
+  };
+
+  const launchBisht = () => {
+    const from = boxOf(restSlotRef.current);
+    const to = boxOf(headerSlotRef.current);
+    if (!from || !to) {
+      setFlight({ phase: "landed", box: null });
+      return;
+    }
+    setFlight({ phase: "fly", box: from });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setFlight({ phase: "fly", box: to }));
+    });
+    setTimeout(() => setFlight({ phase: "landed", box: null }), 1400);
+  };
+
+
   const stopAudio = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
