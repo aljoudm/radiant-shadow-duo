@@ -152,14 +152,14 @@ function Index() {
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <div className="mt-3 flex items-center justify-center gap-3">
+          <div className="mt-3 flex items-center justify-center">
             <img
               src={bishtAsset.url}
               alt="Traditional bisht cloak"
-              className={`pointer-events-none h-11 w-auto origin-bottom transition-all duration-700 ease-out md:h-14 ${
+              className={`pointer-events-none h-12 origin-bottom transition-all duration-700 ease-out md:h-14 ${
                 stage === 0
                   ? "w-0 translate-y-4 scale-75 opacity-0"
-                  : "translate-y-0 -rotate-3 scale-100 opacity-100"
+                  : "mr-3 w-auto -rotate-3 opacity-100"
               }`}
             />
             <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
