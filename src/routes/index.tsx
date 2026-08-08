@@ -148,22 +148,24 @@ function Index() {
   return (
     <main className="min-h-screen bg-background px-5 py-12 md:py-16">
       <div className="mx-auto max-w-4xl">
-        <header className="relative text-center">
-          <img
-            src={bishtAsset.url}
-            alt="Traditional bisht cloak"
-            className={`pointer-events-none absolute top-1 right-2 w-16 drop-shadow-xl transition-all duration-700 ease-out md:right-8 md:w-20 ${
-              stage === 0
-                ? "translate-y-6 scale-90 opacity-0"
-                : "translate-y-0 scale-100 -rotate-6 opacity-100"
-            }`}
-          />
+        <header className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-            AI Debate
-          </h1>
+          <div className="mt-3 flex items-center justify-center">
+            <img
+              src={bishtAsset.url}
+              alt="Traditional bisht cloak"
+              className={`pointer-events-none h-12 origin-bottom transition-all duration-700 ease-out md:h-14 ${
+                stage === 0
+                  ? "w-0 translate-y-4 scale-75 opacity-0"
+                  : "mr-3 w-auto -rotate-3 opacity-100"
+              }`}
+            />
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+              AI Debate
+            </h1>
+          </div>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
             Submit a topic. Two speakers will present a formal argument and rebuttal, spoken aloud.
           </p>
@@ -195,7 +197,7 @@ function Index() {
         </div>
 
         {stage === 0 ? (
-          <form onSubmit={start} className="mt-14 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <form onSubmit={start} className="mt-24 flex flex-col gap-3 sm:flex-row sm:items-end">
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
@@ -203,11 +205,17 @@ function Index() {
               className="flex-1 rounded-xl border border-input bg-card px-5 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
             />
             <div className="relative">
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 h-20 w-20 -translate-x-1/2 rounded-full bg-primary/15 blur-xl transition-opacity duration-500 ${
+                  loading ? "opacity-0" : "opacity-100"
+                }`}
+              />
               <img
                 src={bishtAsset.url}
                 alt="Traditional bisht cloak resting on the start button"
-                className={`pointer-events-none absolute -top-11 left-1/2 w-16 -translate-x-1/2 drop-shadow-xl transition-all duration-500 ease-out md:w-20 ${
-                  loading ? "-translate-y-10 scale-90 opacity-0" : "opacity-100"
+                className={`pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 h-20 w-auto origin-bottom -translate-x-1/2 [filter:drop-shadow(0_8px_12px_rgb(0_0_0/0.5))] transition-all duration-500 ease-out md:h-24 ${
+                  loading ? "-translate-y-10 rotate-3 scale-90 opacity-0" : "opacity-100"
                 }`}
               />
               <button
