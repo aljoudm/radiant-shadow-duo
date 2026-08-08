@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
-import bishtAsset from "@/assets/bisht.png.asset.json";
+import bishtImg from "@/assets/bisht-draped.png";
 import sceneBoth from "@/assets/scene-both.jpg";
 import sceneLeft from "@/assets/scene-left.jpg";
 import sceneRight from "@/assets/scene-right.jpg";
@@ -62,6 +62,36 @@ function Index() {
   const [speaking, setSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Bisht flight: rests on the start button, then flies up to the title.
+  const restSlotRef = useRef<HTMLSpanElement | null>(null);
+  const headerSlotRef = useRef<HTMLSpanElement | null>(null);
+  const [flight, setFlight] = useState<{
+    phase: "rest" | "fly" | "landed";
+    box: { top: number; left: number; h: number } | null;
+  }>({ phase: "rest", box: null });
+
+  const anchorOf = (el: HTMLElement | null, h: number) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { top: r.bottom + window.scrollY, left: r.left + r.width / 2, h };
+  };
+
+  const launchBisht = () => {
+    const from = anchorOf(restSlotRef.current, 96);
+    const to = anchorOf(headerSlotRef.current, 52);
+    if (!from || !to) {
+      setFlight({ phase: "landed", box: null });
+      return;
+    }
+    setFlight({ phase: "fly", box: from });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setFlight({ phase: "fly", box: to }));
+    });
+    setTimeout(() => setFlight({ phase: "landed", box: null }), 1500);
+  };
+
+
 
   const stopAudio = useCallback(() => {
     const audio = audioRef.current;
@@ -125,6 +155,7 @@ function Index() {
     if (!topic.trim() || loading) return;
     setLoading(true);
     setError(null);
+    launchBisht();
     try {
       const result = await run({ data: { topic: topic.trim() } });
       setDialogue(result);
@@ -141,31 +172,55 @@ function Index() {
     setStage(0);
     setDialogue(null);
     setError(null);
+    setFlight({ phase: "rest", box: null });
   };
+
 
   const image = stage === 0 ? sceneBoth : stage === 1 ? sceneLeft : sceneRight;
 
   return (
     <main className="min-h-screen bg-background px-5 py-12 md:py-16">
+      {flight.phase === "fly" && flight.box && (
+        <img
+          src={bishtImg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute z-50 w-auto -translate-x-1/2 -translate-y-full [filter:drop-shadow(0_10px_16px_rgb(0_0_0/0.5))] transition-all duration-[1300ms] ease-[cubic-bezier(0.55,-0.2,0.25,1)]"
+          style={{
+            top: flight.box.top,
+            left: flight.box.left,
+            height: flight.box.h,
+            rotate: flight.box.h > 60 ? "0deg" : "-3deg",
+          }}
+        />
+      )}
+
       <div className="mx-auto max-w-4xl">
         <header className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <div className="mt-3 flex items-center justify-center">
-            <img
-              src={bishtAsset.url}
-              alt="Traditional bisht cloak"
-              className={`pointer-events-none h-12 origin-bottom transition-all duration-700 ease-out md:h-14 ${
-                stage === 0
-                  ? "w-0 translate-y-4 scale-75 opacity-0"
-                  : "mr-3 w-auto -rotate-3 opacity-100"
+          <div className="mt-3 flex items-end justify-center gap-3">
+            <span
+              ref={headerSlotRef}
+              className={`relative block transition-all duration-500 ${
+                stage === 0 && flight.phase !== "landed" ? "w-0 opacity-0" : "w-9 md:w-11"
               }`}
-            />
+              style={{ height: 52 }}
+            >
+              {flight.phase === "landed" && (
+                <img
+                  src={bishtImg}
+                  alt="Traditional bisht cloak"
+                  className="pointer-events-none absolute bottom-0 left-1/2 h-[52px] w-auto -translate-x-1/2 -rotate-3 animate-fade-in [filter:drop-shadow(0_0_10px_color-mix(in_oklab,var(--color-primary)_70%,transparent))_drop-shadow(0_0_22px_color-mix(in_oklab,var(--color-primary)_35%,transparent))]"
+                />
+              )}
+            </span>
             <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
               AI Debate
             </h1>
           </div>
+
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
             Submit a topic. Two speakers will present a formal argument and rebuttal, spoken aloud.
           </p>
@@ -207,17 +262,23 @@ function Index() {
             <div className="relative">
               <span
                 aria-hidden
-                className={`pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 h-20 w-20 -translate-x-1/2 rounded-full bg-primary/15 blur-xl transition-opacity duration-500 ${
-                  loading ? "opacity-0" : "opacity-100"
+                className={`pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 h-20 w-24 -translate-x-1/2 rounded-full bg-primary/15 blur-xl transition-opacity duration-500 ${
+                  flight.phase === "rest" ? "opacity-100" : "opacity-0"
                 }`}
               />
-              <img
-                src={bishtAsset.url}
-                alt="Traditional bisht cloak resting on the start button"
-                className={`pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 h-20 w-auto origin-bottom -translate-x-1/2 [filter:drop-shadow(0_8px_12px_rgb(0_0_0/0.5))] transition-all duration-500 ease-out md:h-24 ${
-                  loading ? "-translate-y-10 rotate-3 scale-90 opacity-0" : "opacity-100"
-                }`}
+              <span
+                ref={restSlotRef}
+                aria-hidden
+                className="pointer-events-none absolute bottom-[calc(100%-6px)] left-0 block h-0 w-full"
               />
+              {flight.phase === "rest" && (
+                <img
+                  src={bishtImg}
+                  alt="Traditional bisht cloak resting on the start button"
+                  className="pointer-events-none absolute bottom-[calc(100%-6px)] left-1/2 h-24 w-auto -translate-x-1/2 [filter:drop-shadow(0_10px_14px_rgb(0_0_0/0.55))]"
+                />
+              )}
+
               <button
                 type="submit"
                 disabled={loading || !topic.trim()}
