@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import bishtAsset from "@/assets/bisht.png.asset.json";
 import sceneBoth from "@/assets/scene-both.jpg";
 import sceneLeft from "@/assets/scene-left.jpg";
@@ -31,6 +31,8 @@ export const Route = createFileRoute("/")({
 
 type Stage = 0 | 1 | 2;
 
+const BISHT_RATIO = 673 / 590; // natural height / width of the bisht image
+
 const readingTime = (text: string) =>
   Math.min(16000, Math.max(5000, text.trim().split(/\s+/).length * 520));
 
@@ -53,6 +55,8 @@ function Bubble({ text, side }: { text: string; side: "left" | "right" }) {
   );
 }
 
+type BishtRect = { left: number; top: number; width: number };
+
 function Index() {
   const run = useServerFn(generateDialogue);
   const [topic, setTopic] = useState("");
@@ -62,6 +66,58 @@ function Index() {
   const [speaking, setSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // The bisht is a single element that physically travels from resting on the
+  // Start button to a judge's seat below the stage. We measure anchor elements
+  // and drive the bisht's absolute position with a CSS transition so it glides.
+  const mainRef = useRef<HTMLElement | null>(null);
+  const startBtnRef = useRef<HTMLButtonElement | null>(null);
+  const judgeRef = useRef<HTMLDivElement | null>(null);
+  const [bishtRect, setBishtRect] = useState<BishtRect | null>(null);
+
+  const placeBisht = useCallback(() => {
+    const main = mainRef.current;
+    if (!main) return;
+    const m = main.getBoundingClientRect();
+
+    if (stage === 0) {
+      const btn = startBtnRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      const width = Math.min(r.width * 0.62, 120);
+      const height = width * BISHT_RATIO;
+      setBishtRect({
+        left: r.left + r.width / 2 - width / 2 - m.left,
+        top: r.top + 6 - height - m.top,
+        width,
+      });
+    } else {
+      const seat = judgeRef.current;
+      if (!seat) return;
+      const r = seat.getBoundingClientRect();
+      const width = 132;
+      const height = width * BISHT_RATIO;
+      setBishtRect({
+        left: r.left + r.width / 2 - width / 2 - m.left,
+        top: r.top + (r.height - height) / 2 - m.top,
+        width,
+      });
+    }
+  }, [stage]);
+
+  useLayoutEffect(() => {
+    placeBisht();
+  }, [placeBisht]);
+
+  useEffect(() => {
+    const on = () => placeBisht();
+    window.addEventListener("resize", on);
+    window.addEventListener("scroll", on, true);
+    return () => {
+      window.removeEventListener("resize", on);
+      window.removeEventListener("scroll", on, true);
+    };
+  }, [placeBisht]);
 
   const stopAudio = useCallback(() => {
     const audio = audioRef.current;
@@ -146,26 +202,15 @@ function Index() {
   const image = stage === 0 ? sceneBoth : stage === 1 ? sceneLeft : sceneRight;
 
   return (
-    <main className="min-h-screen bg-background px-5 py-12 md:py-16">
+    <main ref={mainRef} className="relative min-h-screen bg-background px-5 py-12 md:py-16">
       <div className="mx-auto max-w-4xl">
         <header className="text-center">
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Powered by AI
           </p>
-          <div className="mt-3 flex items-center justify-center">
-            <img
-              src={bishtAsset.url}
-              alt="Traditional bisht cloak"
-              className={`pointer-events-none h-12 origin-bottom transition-all duration-700 ease-out md:h-14 ${
-                stage === 0
-                  ? "w-0 translate-y-4 scale-75 opacity-0"
-                  : "mr-3 w-auto -rotate-3 opacity-100"
-              }`}
-            />
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-              AI Debate
-            </h1>
-          </div>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            AI Debate
+          </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
             Submit a topic. Two speakers will present a formal argument and rebuttal, spoken aloud.
           </p>
@@ -197,38 +242,29 @@ function Index() {
         </div>
 
         {stage === 0 ? (
-          <form onSubmit={start} className="mt-24 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <form onSubmit={start} className="mt-16 flex flex-col gap-3 sm:flex-row sm:items-end">
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g. Remote work is more productive than office work"
               className="flex-1 rounded-xl border border-input bg-card px-5 py-3.5 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
             />
-            <div className="relative">
-              <span
-                aria-hidden
-                className={`pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 h-20 w-20 -translate-x-1/2 rounded-full bg-primary/15 blur-xl transition-opacity duration-500 ${
-                  loading ? "opacity-0" : "opacity-100"
-                }`}
-              />
-              <img
-                src={bishtAsset.url}
-                alt="Traditional bisht cloak resting on the start button"
-                className={`pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 h-20 w-auto origin-bottom -translate-x-1/2 [filter:drop-shadow(0_8px_12px_rgb(0_0_0/0.5))] transition-all duration-500 ease-out md:h-24 ${
-                  loading ? "-translate-y-10 rotate-3 scale-90 opacity-0" : "opacity-100"
-                }`}
-              />
-              <button
-                type="submit"
-                disabled={loading || !topic.trim()}
-                className="w-full rounded-xl bg-primary px-8 py-3.5 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
-                {loading ? "Preparing…" : "Start debate"}
-              </button>
-            </div>
+            <button
+              ref={startBtnRef}
+              type="submit"
+              disabled={loading || !topic.trim()}
+              className="relative w-full overflow-visible rounded-xl bg-primary px-8 py-3.5 text-base font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
+            >
+              {loading ? "Preparing…" : "Start debate"}
+            </button>
           </form>
         ) : (
-          <div className="mt-8 flex flex-col items-center gap-4">
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <div
+              ref={judgeRef}
+              aria-hidden
+              className="relative flex h-36 w-full items-center justify-center"
+            />
             <p className="text-sm text-muted-foreground">
               {stage === 1
                 ? speaking
@@ -240,7 +276,7 @@ function Index() {
             </p>
             <button
               onClick={reset}
-              className="rounded-xl border border-border bg-card px-8 py-3 text-base font-medium text-card-foreground transition-colors hover:bg-secondary"
+              className="mt-1 rounded-xl border border-border bg-card px-8 py-3 text-base font-medium text-card-foreground transition-colors hover:bg-secondary"
             >
               New topic
             </button>
@@ -249,6 +285,26 @@ function Index() {
 
         {error && <p className="mt-5 text-center text-sm text-destructive">{error}</p>}
       </div>
+
+      {/*
+        Single bisht overlay. It rests on the Start button while the topic is
+        entered, then glides down to preside over the debate as a judge. Because
+        it lives outside the conditional blocks it never unmounts, so the CSS
+        transition produces one continuous motion instead of a fade-out / pop-in.
+      */}
+      {bishtRect && (
+        <img
+          src={bishtAsset.url}
+          alt="Traditional bisht cloak"
+          style={{
+            left: `${bishtRect.left}px`,
+            top: `${bishtRect.top}px`,
+            width: `${bishtRect.width}px`,
+            height: `${bishtRect.width * BISHT_RATIO}px`,
+          }}
+          className="pointer-events-none absolute z-20 origin-bottom transition-all duration-700 ease-out [filter:drop-shadow(0_10px_14px_rgb(0_0_0/0.45))]"
+        />
+      )}
     </main>
   );
 }
